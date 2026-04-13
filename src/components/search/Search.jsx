@@ -30,22 +30,21 @@ export const Search = ({ onSearch, login, repo, blacklist }) => {
 
 	const filterCandidates = (candidates) => {
 		return candidates
-			.map(c => c.login)
-			.filter(name =>
-				name.toLowerCase() !== login.toLowerCase() &&
-				!blacklist.some(b => b.toLowerCase() === name.toLowerCase())
+			.filter(c =>
+				c.login.toLowerCase() !== login.toLowerCase() &&
+				!blacklist.some(b => b.toLowerCase() === c.login.toLowerCase())
 			);
 	}
 
 	const animate = (count, maxCount, contributors) => {
 		if (count < maxCount) {
 			const randomLogin = contributors[Math.floor(Math.random() * contributors.length)];
-			setAnimatingLogin(randomLogin);
+			setAnimatingLogin(randomLogin.login);
 			const delay = (count * maxCount); // увеличение задержки для эффекта замедления
 			setTimeout(() => animate(count + 1, maxCount, contributors), delay);
 		} else {
 			const final = contributors[Math.floor(Math.random() * contributors.length)];
-			setSelectedReviewer(final);
+			setSelectedReviewer(final.login);
 			setAnimatingLogin('');
 		}
 	};
@@ -86,19 +85,20 @@ export const Search = ({ onSearch, login, repo, blacklist }) => {
 				<button onClick={() => onSearch(false)} className='close-button'>x</button>
 			</div>
 
+			{error && <p className='error-message'>{error}</p>}
 
-
-
-			{error && <p>{error}</p>}
-
-			{animatingLogin && (
+			{animatingLogin && !error && (
 				<p>Поиск: {animatingLogin}</p>
 			)}
 
-			{selectedReviewer && (
-				<p>
-					Выбран ревьюер: <strong>{selectedReviewer}</strong>
-				</p>
+			{selectedReviewer && !error && (
+				<>
+					<p>
+						Выбран ревьюер: <strong>{selectedReviewer}</strong>
+					</p>
+					<a href={`https://github.com/${selectedReviewer}`}>связаться</a>
+				</>
+
 			)}
 			<button
 				onClick={makeRequest}
