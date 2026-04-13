@@ -13,3 +13,23 @@
     border: black solid 1px;
     border-radius: 10px;
 }
+.search-button {
+    height: 30px;
+    width: 100px;
+    align-self: start;
+    padding: 0;
+    margin: 5px;
+    cursor: pointer;
+    background: white;
+    border: black solid 1px;
+    border-radius: 10px;
+}
+.user-container {
+    display: flex;
+    flex-direction: column;
+    margin-left: 5px;
+    gap: 10px;
+    p {
+        margin: 0;
+    }
+}
