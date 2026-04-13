@@ -3,13 +3,16 @@ import './Settings.css';
 export const Settings = ({onSettings, handleSubmit}) => {
 	return (
 		<form className="settings-container" onSubmit={handleSubmit}>
-			<button type={'button'} onClick={() => {onSettings(false)}} className="close-button">
-				x
-			</button>
+			<div className="settings-header">
+				<p>Settings</p>
+				<button type={'button'} onClick={() => {onSettings(false)}} className="close-button">
+					x
+				</button>
+			</div>
 			<input className="settings-input" name="login" placeholder={'github login'}/>
 			<input className="settings-input" name="src" placeholder={'login/repo'}/>
 			<input className="settings-input" name="blacklist" placeholder={'blacklist (логины через запятую)'}/>
-			<button type={'submit'} >сохранить</button>
+			<button type={'submit'} className="submit-button">save</button>
 		</form>
 	)
 }

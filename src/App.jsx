@@ -16,6 +16,13 @@ function App() {
         const arr = formData.get('blacklist').toString();
 
         setLogin(log);
+        if (url) {
+            const parts = url.split('/');
+            if (parts.length !== 2 || !parts[0] || !parts[1]) {
+                alert('Репозиторий должен быть в формате: owner/repo\nНапример: facebook/react');
+                return;
+            }
+        }
         setSrc(url);
 
         if (arr !== '') {
@@ -36,12 +43,13 @@ function App() {
 
         setSettingsView(!settingsView);
     }
-  return (
-        <div>
-            {settingsView ? (<Settings onSettings={setSettingsView} handleSubmit={handleSubmit} />)
-                : (<button onClick={() => setSettingsView(true)}>Show Settings</button>)
-            }
+    return (
+        <div className="app-container">
             <label><br/>{login}<br/>{src}<br/>{blacklist}</label>
+            {settingsView ? (<Settings onSettings={setSettingsView} handleSubmit={handleSubmit} />)
+                : (<button className="settings-button" onClick={() => setSettingsView(true)}>Show Settings</button>)
+            }
+
         </div>
     )
 }
