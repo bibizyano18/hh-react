@@ -1,0 +1,14 @@
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    gap: 16px;
+    margin-top: 50px;
+    border: black solid 1px;
+}
+.close-button {
+    height: 10px;
+    width: 15px;
+    align-self: end;
+    cursor: pointer;
+}
