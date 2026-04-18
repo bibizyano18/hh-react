@@ -11,12 +11,17 @@ function App() {
     const [blacklist, setBlacklist] = useState([]);
 
     useEffect(() => {
-        const data = JSON.parse(localStorage.getItem('settings'));
-        if (data) {
-            setLogin(data.login || '');
-            setSrc(data.repo || '');
-            setBlacklist(data.blacklist || []);
+        try {
+            const data = JSON.parse(localStorage.getItem('settings'));
+            if (data) {
+                setLogin(data.login || '');
+                setSrc(data.repo || '');
+                setBlacklist(data.blacklist || []);
+            }
+        } catch (e) {
+            console.log(e);
         }
+
     }, []);
 
     const handleSubmit = (e) => {
@@ -34,23 +39,18 @@ function App() {
                 return;
             }
         }
+        const blacklistArray = arr
+            ? arr.split(',').map(item => item.trim()).filter(item => item !== '')
+            : [];
+
         setLogin(log);
         setSrc(url);
-
-        if (arr !== '') {
-            const blacklistArray = arr.split(',')
-                .map(item => item.trim())
-                .filter(item => item !== '');
-            setBlacklist(blacklistArray);
-        }
-        else setBlacklist([]);
+        setBlacklist(blacklistArray);
 
         localStorage.setItem('settings', JSON.stringify({
             login: log,
             repo: url,
-            blacklist: arr ? arr.split(',')
-                .map(item => item.trim())
-                .filter(item => item !== '') : []
+            blacklist: blacklistArray
         }));
 
         setSettingsView(!settingsView);
@@ -70,7 +70,13 @@ function App() {
                 />)
                 : (<button className="search-button" onClick={() => setSearchView(true)}>Search</button>)
             }
-            {settingsView ? (<Settings onSettings={setSettingsView} handleSubmit={handleSubmit} />)
+            {settingsView ? (<Settings
+                    onSettings={setSettingsView}
+                    handleSubmit={handleSubmit}
+                    login={login}
+                    repo={src}
+                    blacklist={blacklist}
+                />)
                 : (<button className="settings-button" onClick={() => setSettingsView(true)}>Show Settings</button>)
             }
 
