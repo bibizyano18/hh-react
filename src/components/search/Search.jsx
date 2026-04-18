@@ -1,51 +1,62 @@
 import './Search.css'
 import { Octokit } from "octokit";
-import {useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
+
+const octokit = new Octokit();
+const fetchContributors = async (owner, repo) => {
+	try {
+		const response = await octokit.request(
+			'GET /repos/{owner}/{repo}/contributors',
+			{
+				owner,
+				repo,
+				per_page: 100,
+			}
+		);
+		return response.data;
+
+	} catch (error) {
+		console.error('Ошибка:', error);
+		throw error;
+	}
+};
 
 export const Search = ({ onSearch, login, repo, blacklist }) => {
-	const octokit = new Octokit();
+
+	const timerRef = useRef(null);
+
+	useEffect(() => {
+		return () => {
+			clearTimeout(timerRef.current);
+		}
+	}, []);
 
 	const [selectedReviewer, setSelectedReviewer] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [animatingLogin, setAnimatingLogin] = useState('');
 
-	const fetchContributors = async (owner, repo) => {
-		try {
-			const response = await octokit.request(
-				'GET /repos/{owner}/{repo}/contributors',
-				{
-					owner,
-					repo,
-					per_page: 100,
-				}
-			);
-			return response.data;
 
-		} catch (error) {
-			console.error('Ошибка:', error);
-			throw error;
-		}
-	};
-
-	const filterCandidates = (candidates) => {
+	const filterCandidates = useCallback((candidates) => {
 		return candidates
 			.filter(c =>
 				c.login.toLowerCase() !== login.toLowerCase() &&
 				!blacklist.some(b => b.toLowerCase() === c.login.toLowerCase())
 			);
-	}
+	}, [login, blacklist]);
 
 	const animate = (count, maxCount, contributors) => {
 		if (count < maxCount) {
 			const randomLogin = contributors[Math.floor(Math.random() * contributors.length)];
 			setAnimatingLogin(randomLogin.login);
 			const delay = (count * maxCount); // увеличение задержки для эффекта замедления
-			setTimeout(() => animate(count + 1, maxCount, contributors), delay);
+			timerRef.current = setTimeout(() => animate(count + 1, maxCount, contributors), delay);
 		} else {
 			const final = contributors[Math.floor(Math.random() * contributors.length)];
 			setSelectedReviewer(final.login);
 			setAnimatingLogin('');
+			setLoading(false);
+			timerRef.current = null;
 		}
 	};
 	const makeRequest = async () => {
@@ -63,9 +74,9 @@ export const Search = ({ onSearch, login, repo, blacklist }) => {
 			const data = await fetchContributors(owner, repoName);
 
 			const filtered = filterCandidates(data);
-			console.log(filtered);
 			if (filtered.length === 0) {
 				setError('Нет подходящих кандидатов');
+				setLoading(false);
 				return;
 			}
 
@@ -73,7 +84,6 @@ export const Search = ({ onSearch, login, repo, blacklist }) => {
 
 		} catch (err) {
 			setError('Не удалось загрузить контрибьюторов, некорректная ссылка: ' + err.message);
-		} finally {
 			setLoading(false);
 		}
 	};
