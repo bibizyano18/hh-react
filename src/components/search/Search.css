@@ -9,6 +9,9 @@
     background: white;
     border: black solid 1px;
     border-radius: 10px;
+    p {
+        margin: 0;
+    }
 }
 .search-header {
     display: flex;
@@ -18,8 +21,17 @@
         max-width: 85%;
     }
 }
-p {
-    margin: 0;
+.close-button {
+    height: 20px;
+    width: 20px;
+    cursor: pointer;
+    background-color: white;
+    transition: background-color 0.2s ease;
+    border: black solid 1px;
+    border-radius: 10px;
+}
+.close-button:hover {
+    background-color: gray;
 }
 .error-message {
     color: darkred;

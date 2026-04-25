@@ -5,7 +5,6 @@ const octokit = new Octokit()
 export const fetchContributors = createAsyncThunk(
 	'search/fetchContributors',
 	async ({ owner, repo }) => {
-	try {
 		const response = await octokit.request(
 			'GET /repos/{owner}/{repo}/contributors',
 			{
@@ -15,12 +14,7 @@ export const fetchContributors = createAsyncThunk(
 			}
 		);
 		return response.data;
-
-	} catch (error) {
-		console.error('Ошибка:', error);
-		throw error;
-	}
-});
+	});
 
 const searchSlice = createSlice({
 	name: "search",
@@ -28,21 +22,14 @@ const searchSlice = createSlice({
 		contributors: [],
 		loading: false,
 		error: null,
-		animatingLogin: '',
 		selectedReviewer: null,
 	},
 	reducers: {
 		setSelectedReviewer: (state, action) => {
 			state.selectedReviewer = action.payload;
 		},
-		setAnimatingLogin: (state, action) => {
-			state.animatingLogin = action.payload;
-		},
 		setError: (state, action) => {
 			state.error = action.payload;
-		},
-		setLoading: (state, action) => {
-			state.loading = action.payload;
 		},
 		clearSearch: (state) => {
 			state.selectedReviewer = null;
@@ -71,9 +58,7 @@ const searchSlice = createSlice({
 
 export const {
 	setSelectedReviewer,
-	setAnimatingLogin,
 	setError,
-	setLoading,
 	clearSearch
 } = searchSlice.actions;
 export default searchSlice.reducer;

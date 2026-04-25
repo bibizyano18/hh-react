@@ -1,12 +1,13 @@
 import './Search.css'
-import {useCallback, useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {fetchContributors, setError, setSelectedReviewer,
-	setLoading, setAnimatingLogin, clearSearch} from "../../features/search/searchSlice/searchSlice.js";
+import {fetchContributors, setError, setSelectedReviewer, clearSearch} from "../../features/search/searchSlice/searchSlice.js";
 
 export const Search = ({ onSearch }) => {
 	const {login, repo, blacklist} = useSelector((state) => state.settings);
-	const {selectedReviewer, animatingLogin, error, loading, contributors} = useSelector((state) => state.search);
+	const {selectedReviewer, error, loading, contributors} = useSelector((state) => state.search);
+	const [animationLoading, setAnimationLoading] = useState(false);
+	const [animatingLogin, setAnimatingLogin] = useState('');
 	const dispatch = useDispatch();
 
 	const timerRef = useRef(null);
@@ -21,25 +22,25 @@ export const Search = ({ onSearch }) => {
 		}
 	}, [dispatch]);
 
-	const filterCandidates = useCallback((candidates) => {
+	const filterCandidates = (candidates) => {
 		return candidates
 			.filter(c =>
 				c.login.toLowerCase() !== login.toLowerCase() &&
 				!blacklist.some(b => b.toLowerCase() === c.login.toLowerCase())
 			);
-	}, [login, blacklist]);
+	};
 
 	const animate = (count, maxCount, contributors) => {
 		if (count < maxCount) {
 			const randomLogin = contributors[Math.floor(Math.random() * contributors.length)];
-			dispatch(setAnimatingLogin(randomLogin.login));
+			setAnimatingLogin(randomLogin.login);
 			const delay = (count * maxCount); // увеличение задержки для эффекта замедления
 			timerRef.current = setTimeout(() => animate(count + 1, maxCount, contributors), delay);
 		} else {
 			const final = contributors[Math.floor(Math.random() * contributors.length)];
 			dispatch(setSelectedReviewer(final.login));
-			dispatch(setAnimatingLogin(''));
-			dispatch(setLoading(false));
+			setAnimatingLogin('');
+			setAnimationLoading(false);
 			timerRef.current = null;
 		}
 	};
@@ -64,7 +65,7 @@ export const Search = ({ onSearch }) => {
 				dispatch(setError('Нет подходящих кандидатов'));
 				return;
 			}
-			dispatch(setLoading(true));
+			setAnimationLoading(true);
 			animate(0, 20, filtered);
 
 		} catch (err) {
@@ -99,10 +100,14 @@ export const Search = ({ onSearch }) => {
 			)}
 			<button
 				onClick={makeRequest}
-				disabled={loading || !repo}
+				disabled={loading || animationLoading || !repo}
 				className='search-button'
 			>
-				{loading ? 'Загрузка...' : 'Найти ревьюера'}
+				{loading
+					? 'Загрузка...'
+					: animationLoading
+						? 'Выбор ревьюера...'
+						: 'Найти ревьюера'}
 			</button>
 		</div>
 	)

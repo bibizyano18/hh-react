@@ -21,7 +21,6 @@ const settingsSlice = createSlice({
 			state.login = login;
 			state.repo = repo;
 			state.blacklist = blacklist;
-			localStorage.setItem('settings', JSON.stringify(state));
 		}
 	}
 });
