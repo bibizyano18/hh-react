@@ -1,41 +1,26 @@
 import './Search.css'
-import { Octokit } from "octokit";
 import {useEffect, useRef, useState} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {fetchContributors, setError, setSelectedReviewer, clearSearch} from "../../features/search/searchSlice/searchSlice.js";
 
-const octokit = new Octokit();
-const fetchContributors = async (owner, repo) => {
-	try {
-		const response = await octokit.request(
-			'GET /repos/{owner}/{repo}/contributors',
-			{
-				owner,
-				repo,
-				per_page: 100,
-			}
-		);
-		return response.data;
-
-	} catch (error) {
-		console.error('Ошибка:', error);
-		throw error;
-	}
-};
-
-export const Search = ({ onSearch, login, repo, blacklist }) => {
+export const Search = ({ onSearch }) => {
+	const {login, repo, blacklist} = useSelector((state) => state.settings);
+	const {selectedReviewer, error, loading, contributors} = useSelector((state) => state.search);
+	const [animationLoading, setAnimationLoading] = useState(false);
+	const [animatingLogin, setAnimatingLogin] = useState('');
+	const dispatch = useDispatch();
 
 	const timerRef = useRef(null);
 
 	useEffect(() => {
 		return () => {
-			clearTimeout(timerRef.current);
+			if (timerRef.current) {
+				clearTimeout(timerRef.current);
+				timerRef.current = null;
+			}
+			dispatch(clearSearch());
 		}
-	}, []);
-
-	const [selectedReviewer, setSelectedReviewer] = useState(null);
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState(null);
-	const [animatingLogin, setAnimatingLogin] = useState('');
-
+	}, [dispatch]);
 
 	const filterCandidates = (candidates) => {
 		return candidates
@@ -53,38 +38,38 @@ export const Search = ({ onSearch, login, repo, blacklist }) => {
 			timerRef.current = setTimeout(() => animate(count + 1, maxCount, contributors), delay);
 		} else {
 			const final = contributors[Math.floor(Math.random() * contributors.length)];
-			setSelectedReviewer(final.login);
+			dispatch(setSelectedReviewer(final.login));
 			setAnimatingLogin('');
-			setLoading(false);
+			setAnimationLoading(false);
 			timerRef.current = null;
 		}
 	};
 	const makeRequest = async () => {
 		if (!repo) {
-			setError('Укажите репозиторий в настройках');
+			dispatch(setError('Укажите репозиторий в настройках'));
 			return;
 		}
+		if (timerRef.current) {
+			clearTimeout(timerRef.current);
+			timerRef.current = null;
+		}
+		dispatch(clearSearch());
 
 		const [owner, repoName] = repo.split('/');
 
-		setLoading(true);
-		setError(null);
-
 		try {
-			const data = await fetchContributors(owner, repoName);
+			const data = await dispatch(fetchContributors({ owner, repo: repoName })).unwrap();
 
 			const filtered = filterCandidates(data);
 			if (filtered.length === 0) {
-				setError('Нет подходящих кандидатов');
-				setLoading(false);
+				dispatch(setError('Нет подходящих кандидатов'));
 				return;
 			}
-
+			setAnimationLoading(true);
 			animate(0, 20, filtered);
 
 		} catch (err) {
-			setError('Не удалось загрузить контрибьюторов, некорректная ссылка: ' + err.message);
-			setLoading(false);
+			dispatch(setError('Не удалось загрузить контрибьюторов, некорректная ссылка: ' + err.message));
 		}
 	};
 
@@ -110,12 +95,19 @@ export const Search = ({ onSearch, login, repo, blacklist }) => {
 				</>
 
 			)}
+			{contributors && contributors.length > 0 && ( // вывод массива контрибьюторов из слайса
+				<p>Контрибьюторы: {contributors.map(c => c.login).join(', ')}</p>
+			)}
 			<button
 				onClick={makeRequest}
-				disabled={loading || !repo}
+				disabled={loading || animationLoading || !repo}
 				className='search-button'
 			>
-				{loading ? 'Загрузка...' : 'Найти ревьюера'}
+				{loading
+					? 'Загрузка...'
+					: animationLoading
+						? 'Выбор ревьюера...'
+						: 'Найти ревьюера'}
 			</button>
 		</div>
 	)
