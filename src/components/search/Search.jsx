@@ -1,6 +1,6 @@
 import './Search.css'
 import { Octokit } from "octokit";
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 const octokit = new Octokit();
 const fetchContributors = async (owner, repo) => {
@@ -37,13 +37,13 @@ export const Search = ({ onSearch, login, repo, blacklist }) => {
 	const [animatingLogin, setAnimatingLogin] = useState('');
 
 
-	const filterCandidates = useCallback((candidates) => {
+	const filterCandidates = (candidates) => {
 		return candidates
 			.filter(c =>
 				c.login.toLowerCase() !== login.toLowerCase() &&
 				!blacklist.some(b => b.toLowerCase() === c.login.toLowerCase())
 			);
-	}, [login, blacklist]);
+	};
 
 	const animate = (count, maxCount, contributors) => {
 		if (count < maxCount) {
