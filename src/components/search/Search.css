@@ -1,0 +1,26 @@
+.search-container {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    min-width: 15%;
+    max-width: 40%;
+    gap: 10px;
+    padding: 10px;
+    background: white;
+    border: black solid 1px;
+    border-radius: 10px;
+}
+.search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    p {
+        max-width: 85%;
+    }
+}
+p {
+    margin: 0;
+}
+.error-message {
+    color: darkred;
+}
